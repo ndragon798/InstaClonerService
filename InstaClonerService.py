@@ -2,6 +2,10 @@ import os
 import time
 import getpass
 import pickle
+import urllib.request
+import threading
+import shutil
+import wget
 from sys import argv
 from random import randint
 from selenium import webdriver
@@ -109,17 +113,52 @@ def getFollowerList(driver, username_):
         usernames.append(names.text)
     return usernames
 
+def downloadStoryFile(url,download_folder):
+    # Download the file from `url` and save it locally under `file_name`:
+    print(download_folder)
+    if not os.path.exists(download_folder):
+        os.makedirs(download_folder)
+    wget.download(url,out=download_folder)
+        
 
 def getStories(driver):
+    stories={}
+    download_threads=[]
     driver.get("https://www.instagram.com/")
     time.sleep(3)
     find_element_by_tag_and_text(driver,'button','Not Now').click()
-    find_element_by_tag_and_text(driver,'div',"Watch All").click()
+    time.sleep(2)
+    find_element_by_tag_and_text(driver,'a',"Watch All").click()
     while(driver.current_url == "https://www.instagram.com/"):
         time.sleep(1)
     print("test")
     while(driver.current_url != "https://www.instagram.com/"):
         time.sleep(3)
+
+        try:
+            # stories[driver.current_url].update(find_element_by_tag_and_text(driver,'source','video/mp4','type').get_attribute('src'))
+            # stories[driver.current_url].add(find_element_by_tag_and_text(driver,'img','sync',"decoding").get_attribute('src'))
+            url=find_element_by_tag_and_text(driver,'img','sync',"decoding").get_attribute('src')
+            print(url)
+            download_threads.append(threading.Thread(target=downloadStoryFile,args=(url,driver.current_url.split('/')[-2])))
+            download_threads[-1].start()
+        except AttributeError as e:
+            # stories[driver.current_url].update(find_element_by_tag_and_text(driver,'video','auto','preload'))
+            print(e)
+        except:            
+            try:
+                pass
+                # stories[driver.current_url]=set()
+                # stories[driver.current_url].add(find_element_by_tag_and_text(driver,'img','sync',"decoding").get_attribute('src'))
+                # Download the file from `url` and save it locally under `file_name`:
+                # url=find_element_by_tag_and_text(driver,'img','sync',"decoding").get_attribute('src')
+                # urllib.request.urlretrieve(url, driver.current_url)          
+            except Exception as e:
+                print(e)
+        print(stories)
+        for t in download_threads:
+            t.join()
+            
 
 def main():
     driver = createDriver(False)

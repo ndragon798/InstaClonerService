@@ -116,9 +116,9 @@ def getFollowerList(driver, username_):
 def downloadStoryFile(url,download_folder):
     # Download the file from `url` and save it locally under `file_name`:
     print(download_folder)
-    if not os.path.exists(download_folder):
-        os.makedirs(download_folder)
-    wget.download(url,out=download_folder)
+    if not os.path.exists('stories/'+download_folder):
+        os.makedirs('stories/'+download_folder)
+    wget.download(url,out='stories/'+download_folder+'/')
         
 
 def getStories(driver):

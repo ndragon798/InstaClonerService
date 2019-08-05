@@ -60,6 +60,7 @@ def createDriver(headless=True):
     chrome_options = webdriver.ChromeOptions()
     if (headless):
         chrome_options.add_argument('headless')
+    # chrome_options.add_argument('--start-maximized')
     # driver = webdriver.Chrome('./chromedriver')
     driver = webdriver.Chrome('./chromedriver', options=chrome_options)
     return driver
@@ -128,7 +129,11 @@ def getStories(driver):
     time.sleep(3)
     find_element_by_tag_and_text(driver,'button','Not Now').click()
     time.sleep(2)
-    find_element_by_tag_and_text(driver,'a',"Watch All").click()
+    try:
+        find_element_by_tag_and_text(driver,'a',"Watch All").click()
+    except:
+        driver.set_window_size(1920,1080)
+        find_element_by_tag_and_text(driver,'a',"Watch All").click()        
     while(driver.current_url == "https://www.instagram.com/"):
         time.sleep(1)
     print("test")

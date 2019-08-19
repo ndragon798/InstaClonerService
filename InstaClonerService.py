@@ -61,7 +61,7 @@ def createDriver(headless=True):
     chrome_options = webdriver.ChromeOptions()
     if (headless):
         chrome_options.add_argument('headless')
-    # chrome_options.add_argument('--start-maximized')
+    chrome_options.add_argument('--no-sandbox')
     # driver = webdriver.Chrome('./chromedriver')
     driver = webdriver.Chrome('./chromedriver', options=chrome_options)
     return driver
@@ -125,7 +125,7 @@ def downloadStoryFile(url,download_folder):
 
 def getStories(driver):
     amt_downloaded = 0
-    stories = {}
+    # stories = {}
     download_threads = []
     driver.get("https://www.instagram.com/")
     time.sleep(3)

@@ -109,3 +109,4 @@ cookies.pkl
 chromedriver
 chromedriver_linux64*
 stories/
+*.png

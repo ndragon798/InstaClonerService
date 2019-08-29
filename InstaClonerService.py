@@ -1,20 +1,31 @@
 #! /usr/bin/python3
-import os
-import time
+import getopt
 import getpass
+import logging
+import os
 import pickle
-import urllib.request
-import threading
 import shutil
-import wget
-from sys import argv
+import sys
+import threading
+import time
+import urllib.request
 from random import randint
+from sys import argv
+
+import wget
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
+logger = logging.getLogger('InstaClonerService')
+hdlr = logging.FileHandler('./InstaClonerService.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr) 
+logger.setLevel(logging.WARNING)
 
 
 def save_cookie(driver, path="cookies.pkl"):
@@ -33,7 +44,7 @@ def load_cookie(driver, path="cookies.pkl"):
 
 
 def find_element_by_name_retry(driver, name, retry_count=5, wait_time=5, killprocess=True):
-    for i in range(retry_count):
+    for _1 in range(retry_count):
         try:
             return driver.find_element_by_name(name)
         except Exception as e:
@@ -56,41 +67,50 @@ def find_element_by_tag_and_text(driver, tag, text, attribute="innerHTML", multi
 
 
 def createDriver(headless=True):
+    """ Creates the chrome driver with an option to make the driver headless
+    Keyword arguments:
+    headless -- true / false if the driver should be headless (default True)
+    """
+    
     # Optional argument, if not specified will search path.
     # Setup headless chrome for selenium
     chrome_options = webdriver.ChromeOptions()
     if (headless):
         chrome_options.add_argument('headless')
     chrome_options.add_argument('--no-sandbox')
-    # driver = webdriver.Chrome('./chromedriver')
     driver = webdriver.Chrome('./chromedriver', options=chrome_options)
     return driver
 
 
-def login(driver):
-        # Read in username and password for instagram
-    try:
-        scriptname_, username_, password_ = argv
-    except Exception as e:
-        print(e)
-        username_ = input("Please Input Username: ").strip()
-        password_ = getpass.getpass("Please Input Password: ").strip()
+def login(driver, username_ = None,password_ = None):
     driver.get('https://www.instagram.com/accounts/login/')
-
     load_cookie(driver)
-    # Load login page
     driver.get('https://www.instagram.com/accounts/login/')
-    time.sleep(5)
-    # print(driver.current_url)
-    if driver.current_url == "https://www.instagram.com/accounts/login/":
-        # Type in login
-        find_element_by_name_retry(driver, 'username').send_keys(username_)
-        find_element_by_name_retry(driver, 'password').send_keys(password_)
-        webdriver.ActionChains(driver).send_keys(Keys.ENTER).perform()
-        # Wait for login
-        time.sleep(5)
-        # Save cookie
-        save_cookie(driver)
+        # Read in username and password for instagram
+    if (driver.current_url == "https://www.instagram.com/accounts/login/"):
+        if (not username_  or not password_):
+            username_ = input("Please Input Username: ").strip()
+            password_ = getpass.getpass("Please Input Password: ").strip()
+        try:
+            if driver.current_url == "https://www.instagram.com/accounts/login/":
+                # Type in login
+                find_element_by_name_retry(driver, 'username').send_keys(username_)
+                find_element_by_name_retry(driver, 'password').send_keys(password_)
+                webdriver.ActionChains(driver).send_keys(Keys.ENTER).perform()
+                # Wait for login
+                time.sleep(5)
+                # Check for 2FA
+                if "two_factor" in driver.current_url:
+                    two_fa_code = input("Please Enter 2FA Code: ").strip()
+                    find_element_by_tag_and_text(driver,'input',"Security Code","aria-label").send_keys(two_fa_code) 
+                    webdriver.ActionChains(driver).send_keys(Keys.ENTER).perform()
+                #Wait for login
+                time.sleep(5)
+                # Save cookie
+                save_cookie(driver)
+        except Exception as e:
+            logger.error(e)
+            driver.save_screenshot(str(time.time())+".png")
     return username_
 
 
@@ -125,7 +145,6 @@ def downloadStoryFile(url,download_folder):
 
 def getStories(driver):
     amt_downloaded = 0
-    # stories = {}
     download_threads = []
     driver.get("https://www.instagram.com/")
     time.sleep(3)
@@ -139,7 +158,12 @@ def getStories(driver):
         find_element_by_tag_and_text(driver,'a',"Watch All").click()
     except:
         # driver.set_window_size(1920,1080)
-        find_element_by_tag_and_text(driver,'button',"menuitem",'role').click()        
+        try:
+            find_element_by_tag_and_text(driver,'button',"menuitem",'role').click()
+        except Exception as e:
+            logger.error(e)
+            driver.save_screenshot(str(time.time())+".png")   
+            sys.exit(1)
     while(driver.current_url == "https://www.instagram.com/"):
         time.sleep(1)
     print("test")
@@ -159,13 +183,13 @@ def getStories(driver):
             print(e)
         except Exception as e:            
             print(e)
-        for t in download_threads:
-            t.join()
+    for t in download_threads:
+        t.join()
             
 
 def main():
-    driver = createDriver()
-    username_ = login(driver)
+    driver = createDriver(False)
+    login(driver)
     getStories(driver)
     print("end")
     # print(getFollowerList(driver, username_))

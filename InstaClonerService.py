@@ -21,17 +21,18 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-logger = logging.getLogger('InstaClonerService')
-hdlr = logging.FileHandler('./InstaClonerService.log')
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr.setFormatter(formatter)
-logger.addHandler(hdlr) 
-logger.setLevel(logging.WARNING)
-
+#logger = logging.getLogger('InstaClonerService')
+#hdlr = logging.FileHandler('./InstaClonerService.log')
+#formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+#hdlr.setFormatter(formatter)
+#logger.addHandler(hdlr) 
+#logger.setLevel(logging.WARNING)
+logging.basicConfig(filename='./InstaClonerService.log',filemode='a',format='%(asctime)s - %(name)s - %(message)s',datefmt='%d-%b-%y %H:%M:%S',level=logging.INFO)
 
 def save_cookie(driver, path="cookies.pkl"):
+    logging.info('Saving cookies to %s',path)
     pickle.dump(driver.get_cookies(), open(path, "wb"))
-
+    logging.info('Saved cookies to %s',path)
 
 def load_cookie(driver, path="cookies.pkl"):
     try:
@@ -113,7 +114,7 @@ def login(driver, username_ = None,password_ = None,totp_key = None):
                 # Save cookie
                 save_cookie(driver)
         except Exception as e:
-            logger.error(e)
+            logging.error(e)
             driver.save_screenshot(str(time.time())+".png")
     return username_
 
@@ -165,7 +166,7 @@ def getStories(driver):
         try:
             find_element_by_tag_and_text(driver,'button',"menuitem",'role').click()
         except Exception as e:
-            logger.error(e)
+            logging.error(e)
             driver.save_screenshot(str(time.time())+".png")   
             sys.exit(1)
     while(driver.current_url == "https://www.instagram.com/"):
@@ -194,6 +195,7 @@ def loadcfg(settings_file='./settings.yml'):
     return yaml.safe_load(open(settings_file))
     
 def main():
+    logging.info("Starting Main Method")
     driver = createDriver()
     config = loadcfg()
     try:

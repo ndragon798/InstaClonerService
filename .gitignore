@@ -110,3 +110,4 @@ chromedriver
 chromedriver_linux64*
 stories/
 *.png
+settings.yml

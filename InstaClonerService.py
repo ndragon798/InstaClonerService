@@ -11,8 +11,9 @@ import time
 import urllib.request
 from random import randint
 from sys import argv
-
+import onetimepass as otp
 import wget
+import yaml
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -82,7 +83,7 @@ def createDriver(headless=True):
     return driver
 
 
-def login(driver, username_ = None,password_ = None):
+def login(driver, username_ = None,password_ = None,totp_key = None):
     driver.get('https://www.instagram.com/accounts/login/')
     load_cookie(driver)
     driver.get('https://www.instagram.com/accounts/login/')
@@ -101,7 +102,10 @@ def login(driver, username_ = None,password_ = None):
                 time.sleep(5)
                 # Check for 2FA
                 if "two_factor" in driver.current_url:
-                    two_fa_code = input("Please Enter 2FA Code: ").strip()
+                    if not totp_key:
+                        two_fa_code = input("Please Enter 2FA Code: ").strip()
+                    else:
+                        two_fa_code = otp.get_totp(totp_key)
                     find_element_by_tag_and_text(driver,'input',"Security Code","aria-label").send_keys(two_fa_code) 
                     webdriver.ActionChains(driver).send_keys(Keys.ENTER).perform()
                 #Wait for login
@@ -186,14 +190,19 @@ def getStories(driver):
     for t in download_threads:
         t.join()
             
-
+def loadcfg(settings_file='./settings.yml'):
+    return yaml.safe_load(open(settings_file))
+    
 def main():
-    driver = createDriver(False)
-    login(driver)
+    driver = createDriver()
+    config = loadcfg()
+    try:
+        login(driver, username_=config['username'],password_=config['password'],totp_key=config['totp_key'])
+    except:
+        login(driver, username_=config['username'],password_=config['password'])
     getStories(driver)
     print("end")
     # print(getFollowerList(driver, username_))
-
 
 if __name__ == "__main__":
     main()

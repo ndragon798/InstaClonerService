@@ -24,7 +24,7 @@ def welcome():
 
 @scheduler.task('cron', id='stories', hour='*')
 def scheduled_task():
-    realod(ICS)
+    reload(ICS)
     driver = ICS.createDriver()
     config = ICS.loadcfg()
     try:

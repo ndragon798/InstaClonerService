@@ -1,5 +1,7 @@
+#! /usr/bin/python3
 from flask import Flask
 from flask_apscheduler import APScheduler
+from importlib import reload
  
 import time
 import InstaClonerService as ICS
@@ -22,6 +24,7 @@ def welcome():
 
 @scheduler.task('cron', id='stories', hour='*')
 def scheduled_task():
+    realod(ICS)
     driver = ICS.createDriver()
     config = ICS.loadcfg()
     try:

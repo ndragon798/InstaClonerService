@@ -11,7 +11,7 @@ import time
 import urllib.request
 from random import randint
 from sys import argv
-import onetimepass as otp
+
 import wget
 import yaml
 from selenium import webdriver
@@ -21,6 +21,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+import onetimepass as otp
+
 logging.basicConfig(filename='./InstaClonerService.log',filemode='a',format='%(asctime)s - %(name)s - %(message)s',datefmt='%d-%b-%y %H:%M:%S',level=logging.INFO)
 
 def save_cookie(driver, path="cookies.pkl"):
@@ -29,6 +31,7 @@ def save_cookie(driver, path="cookies.pkl"):
         logging.info('Saved cookies to %s',path)
     except Exception as e:
         logging.error("Error saving cookies to %s",path,exc_info=True)
+        logging.error(str(e))
 def load_cookie(driver, path="cookies.pkl"):
     try:
         cookies = pickle.load(open(path, "rb"))
@@ -39,6 +42,7 @@ def load_cookie(driver, path="cookies.pkl"):
         logging.info('Loaded cookies from %s',path)
     except Exception as e:
        logging.error("Error loading cookie at %s",path,exc_info=True)
+       logging.error(str(e))
 
 
 def find_element_by_name_retry(driver, name, retry_count=5, wait_time=5, killprocess=True):
@@ -68,6 +72,7 @@ def find_element_by_tag_and_text(driver, tag, text, attribute="innerHTML", multi
         return elements
     except Exception as e:
         logging.error("Error finding element with tag: %s and text: %s and attribute: %s",tag,text,attribute,exc_info=True)
+        logging.error(str(e))
 
 
 def createDriver(headless=True):
@@ -88,6 +93,8 @@ def createDriver(headless=True):
         return driver
     except Exception as e:
         logging.error("Error occured during creating of the chrome driver headless: %s",str(headless),exc_info=True)
+        logging.error(str(e))
+
 
 def login(driver, username_ = None,password_ = None,totp_key = None):
     driver.get('https://www.instagram.com/accounts/login/')
@@ -118,11 +125,12 @@ def login(driver, username_ = None,password_ = None,totp_key = None):
                     webdriver.ActionChains(driver).send_keys(Keys.ENTER).perform()
                 #Wait for login
                 time.sleep(5)
-                logging.info("Logged in as %s",_username)
+                logging.info("Logged in as %s",username_)
                 # Save cookie
                 save_cookie(driver)
         except Exception as e:
-            logging.error("Failed to login as %s",_username,exc_info=True)
+            logging.error("Failed to login as %s",username_,exc_info=True)
+            logging.error(str(e))
             driver.save_screenshot(str(time.time())+".png")
     return username_
 

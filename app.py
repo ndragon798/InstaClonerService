@@ -1,9 +1,10 @@
 #! /usr/bin/python3
+import time
+from importlib import reload
+
 from flask import Flask
 from flask_apscheduler import APScheduler
-from importlib import reload
- 
-import time
+
 import InstaClonerService as ICS
 
 app = Flask(__name__)
@@ -13,15 +14,8 @@ scheduler.start()
  
 @app.route('/')
 def welcome():
-    return 'Welcome to flask_apscheduler demo', 200
+    return 'Welcome to InstaClonerService demo', 200
  
-# @app.route('/run-tasks')
-# def run_tasks():
-#     for i in range(10):
-#         app.apscheduler.add_job(func=scheduled_task, trigger='date', args=[i], id='j'+str(i))
- 
-#     return 'Scheduled several long running tasks.', 200
-
 @scheduler.task('cron', id='stories', hour='*')
 def scheduled_task():
     reload(ICS)

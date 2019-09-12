@@ -21,19 +21,14 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-#logger = logging.getLogger('InstaClonerService')
-#hdlr = logging.FileHandler('./InstaClonerService.log')
-#formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-#hdlr.setFormatter(formatter)
-#logger.addHandler(hdlr) 
-#logger.setLevel(logging.WARNING)
 logging.basicConfig(filename='./InstaClonerService.log',filemode='a',format='%(asctime)s - %(name)s - %(message)s',datefmt='%d-%b-%y %H:%M:%S',level=logging.INFO)
 
 def save_cookie(driver, path="cookies.pkl"):
-    logging.info('Saving cookies to %s',path)
-    pickle.dump(driver.get_cookies(), open(path, "wb"))
-    logging.info('Saved cookies to %s',path)
-
+    try:
+        pickle.dump(driver.get_cookies(), open(path, "wb"))
+        logging.info('Saved cookies to %s',path)
+    except Exception as e:
+        logging.error("Error saving cookies to %s",path,exc_info=True)
 def load_cookie(driver, path="cookies.pkl"):
     try:
         cookies = pickle.load(open(path, "rb"))
@@ -41,31 +36,38 @@ def load_cookie(driver, path="cookies.pkl"):
             if "expiry" in cookie:
                 cookie.pop('expiry', None)
             driver.add_cookie(cookie)
-    except:
-        pass
+        logging.info('Loaded cookies from %s',path)
+    except Exception as e:
+       logging.error("Error loading cookie at %s",path,exc_info=True)
 
 
 def find_element_by_name_retry(driver, name, retry_count=5, wait_time=5, killprocess=True):
-    for _1 in range(retry_count):
+    logging.info("Attempting to find element %s with retry count %d",name,retry_count)
+    for i in range(retry_count):
         try:
             return driver.find_element_by_name(name)
         except Exception as e:
             time.sleep(wait_time)
             print(e)
+            logging.error("Error finding element %s on attempt number %d",name,i,exc_info=True)
     if (killprocess):
         exit()
 
 
 def find_element_by_tag_and_text(driver, tag, text, attribute="innerHTML", multiple=False):
-    tags = driver.find_elements_by_tag_name(tag)
-    elements = []
-    for i in tags:
-        if text in i.get_attribute(attribute):
-            if multiple:
-                elements.append(i)
-            else:
-                return i
-    return elements
+    logging.info("Trying to find element with tag: %s and text: %s and attribute: %s",tag,text,attribute)
+    try:
+        tags = driver.find_elements_by_tag_name(tag)
+        elements = []
+        for i in tags:
+            if text in i.get_attribute(attribute):
+               if multiple:
+                   elements.append(i)
+               else:
+                   return i
+        return elements
+    except Exception as e:
+        logging.error("Error finding element with tag: %s and text: %s and attribute: %s",tag,text,attribute,exc_info=True)
 
 
 def createDriver(headless=True):
@@ -73,16 +75,19 @@ def createDriver(headless=True):
     Keyword arguments:
     headless -- true / false if the driver should be headless (default True)
     """
-    
+    logging.info("Attemtping to create a chrome driver")
     # Optional argument, if not specified will search path.
     # Setup headless chrome for selenium
-    chrome_options = webdriver.ChromeOptions()
-    if (headless):
-        chrome_options.add_argument('headless')
-    chrome_options.add_argument('--no-sandbox')
-    driver = webdriver.Chrome('./chromedriver', options=chrome_options)
-    return driver
-
+    try:
+        chrome_options = webdriver.ChromeOptions()
+        if (headless):
+            chrome_options.add_argument('headless')
+        chrome_options.add_argument('--no-sandbox')
+        driver = webdriver.Chrome('./chromedriver', options=chrome_options)
+        logging.info("Created chrome driver")
+        return driver
+    except Exception as e:
+        logging.error("Error occured during creating of the chrome driver headless: %s",str(headless),exc_info=True)
 
 def login(driver, username_ = None,password_ = None,totp_key = None):
     driver.get('https://www.instagram.com/accounts/login/')
@@ -106,20 +111,24 @@ def login(driver, username_ = None,password_ = None,totp_key = None):
                     if not totp_key:
                         two_fa_code = input("Please Enter 2FA Code: ").strip()
                     else:
+                        logging.info("Attempting to create 2fa code using config key")
                         two_fa_code = otp.get_totp(totp_key)
+                        logging.info("Created 2FA Code: %s",two_fa_code)
                     find_element_by_tag_and_text(driver,'input',"Security Code","aria-label").send_keys(two_fa_code) 
                     webdriver.ActionChains(driver).send_keys(Keys.ENTER).perform()
                 #Wait for login
                 time.sleep(5)
+                logging.info("Logged in as %s",_username)
                 # Save cookie
                 save_cookie(driver)
         except Exception as e:
-            logging.error(e)
+            logging.error("Failed to login as %s",_username,exc_info=True)
             driver.save_screenshot(str(time.time())+".png")
     return username_
 
 
 def getFollowerList(driver, username_):
+    logging.info("Attempting to get Follower List")
     username_ = driver.find_element_by_xpath('//section/div/div/div/div/div/a').get_attribute("innerHTML")
     # Go to profile
     driver.get('https://www.instagram.com/'+username_)
@@ -138,17 +147,20 @@ def getFollowerList(driver, username_):
         usernames_elements = driver.find_elements_by_xpath("//li/div/div/div/div/a")
     for names in usernames_elements:
         usernames.append(names.text)
+    logging.info("Got list of users length %d",len(usernames))
     return usernames
 
 def downloadStoryFile(url,download_folder):
     # Download the file from `url` and save it locally under `file_name`:
+    logging.info("Attempting to download %s to %s",url,download_folder)
     print(download_folder)
     if not os.path.exists('stories/'+download_folder):
         os.makedirs('stories/'+download_folder)
     wget.download(url,out='stories/'+download_folder+'/')
-        
+
 
 def getStories(driver):
+    logging.info("Attempting to getStories")
     amt_downloaded = 0
     download_threads = []
     driver.get("https://www.instagram.com/")
@@ -190,10 +202,13 @@ def getStories(driver):
             print(e)
     for t in download_threads:
         t.join()
-            
+    logging.info("Got %d stories",amt_downloaded)
+
+
 def loadcfg(settings_file='./settings.yml'):
+    logging.info("Attempting to load cfg from %s",settings_file)
     return yaml.safe_load(open(settings_file))
-    
+
 def main():
     logging.info("Starting Main Method")
     driver = createDriver()

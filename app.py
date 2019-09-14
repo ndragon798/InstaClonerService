@@ -1,8 +1,9 @@
 #! /usr/bin/python3
+import os
 import time
 from importlib import reload
 
-from flask import Flask
+from flask import Flask, render_template, url_for
 from flask_apscheduler import APScheduler
 
 import InstaClonerService as ICS
@@ -13,9 +14,17 @@ scheduler.init_app(app)
 scheduler.start()
  
 @app.route('/')
-def welcome():
-    return 'Welcome to InstaClonerService demo', 200
+def index():
+    return render_template('index.html')
  
+@app.route('/<user>')
+def usergallery(user=None):
+    photosloc=[]
+    for (_root, _dirs, files) in os.walk("static/stories/"+user):
+        for file in files:
+            photosloc.append("stories/"+user+"/"+file)
+    return render_template('user.html',photos=photosloc)
+
 @scheduler.task('cron', id='stories', hour='*')
 def scheduled_task():
     reload(ICS)

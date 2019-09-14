@@ -162,9 +162,9 @@ def downloadStoryFile(url,download_folder):
     # Download the file from `url` and save it locally under `file_name`:
     logging.info("Attempting to download %s to %s",url,download_folder)
     print(download_folder)
-    if not os.path.exists('stories/'+download_folder):
-        os.makedirs('stories/'+download_folder)
-    wget.download(url,out='stories/'+download_folder+'/')
+    if not os.path.exists('static/stories/'+download_folder):
+        os.makedirs('static/stories/'+download_folder)
+    wget.download(url,out='static/stories/'+download_folder+'/')
 
 
 def getStories(driver):

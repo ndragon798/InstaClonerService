@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 import os
 import time
+import base64
 from importlib import reload
 
 from flask import Flask, render_template, url_for
@@ -12,7 +13,7 @@ app = Flask(__name__)
 scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
- 
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -22,7 +23,9 @@ def usergallery(user=None):
     photosloc=[]
     for (_root, _dirs, files) in os.walk("static/stories/"+user):
         for file in files:
-            photosloc.append("stories/"+user+"/"+file)
+            with open(_root+"/"+file,"rb") as img_file:
+               photosloc.append(base64.b64encode(img_file.read()).decode('utf-8'))
+            #photosloc.append("stories/"+user+"/"+file)
     return render_template('user.html',photos=photosloc)
 
 @scheduler.task('cron', id='stories', hour='*')

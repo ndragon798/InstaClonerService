@@ -39,5 +39,6 @@ def scheduled_task():
         ICS.login(driver, username_=config['username'],password_=config['password'])
     ICS.getStories(driver)
     print("end")
+    ICS.endChrome(driver)
          
 app.run(host='0.0.0.0', port=12345)

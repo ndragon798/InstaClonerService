@@ -217,6 +217,13 @@ def loadcfg(settings_file='./settings.yml'):
     logging.info("Attempting to load cfg from %s",settings_file)
     return yaml.safe_load(open(settings_file))
 
+def endChrome(driver):
+    logging.info("Exiting driver instance.")
+    try:
+        driver.close()
+        driver.quit()
+    except:
+        logging.error(exc_info=True)
 def main():
     logging.info("Starting Main Method")
     driver = createDriver()

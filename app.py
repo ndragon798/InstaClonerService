@@ -26,7 +26,7 @@ def usergallery(user=None):
             with open(_root+"/"+file,"rb") as img_file:
                photosloc.append(base64.b64encode(img_file.read()).decode('utf-8'))
             #photosloc.append("stories/"+user+"/"+file)
-    return render_template('user.html',photos=photosloc)
+    return render_template('user.html',photos=photosloc,photolen=len(photosloc))
 
 @scheduler.task('cron', id='stories', hour='*')
 def scheduled_task():

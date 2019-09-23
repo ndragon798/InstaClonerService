@@ -16,14 +16,15 @@ scheduler.init_app(app)
 scheduler.start()
 
 
-@app.route('/',methods=['GET','POST'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
         return render_template('index.html')
     elif request.method == 'POST':
-        t=threading.Thread(target=scheduled_task)
+        t = threading.Thread(target=scheduled_task)
         t.start()
         return render_template('index.html')
+
 
 @app.route('/<user>')
 def usergallery(user=None):
@@ -62,4 +63,4 @@ def scheduled_task():
     ICS.endChrome(driver)
 
 
-app.run(host='0.0.0.0', port=12345,threaded=True,debug=True)
+app.run(host='0.0.0.0', port=12345, threaded=True, debug=True)

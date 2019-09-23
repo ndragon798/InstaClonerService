@@ -31,13 +31,14 @@ logging.basicConfig(
     datefmt='%d-%b-%y %H:%M:%S',
     level=logging.INFO)
 
-engine = create_engine("sqlite:///ICS.db",echo=True)
-Base=declarative_base()
+engine = create_engine("sqlite:///ICS.db", echo=True)
+Base = declarative_base()
+
+
 class User(Base):
     __tablename__ = 'stories'
-    id= Column(String, primary_key=True)
-    last_seen=Column(DateTime)
-
+    id = Column(String, primary_key=True)
+    last_seen = Column(DateTime)
 
 
 def save_cookie(driver, path="cookies.pkl"):

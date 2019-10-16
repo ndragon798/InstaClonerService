@@ -106,7 +106,7 @@ venv.bak/
 #Custom
 .vscode/
 cookies.pkl
-chromedriver
+chromedriver*
 chromedriver_linux64*
 stories/
 *.png

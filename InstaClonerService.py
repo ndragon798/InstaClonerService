@@ -295,8 +295,8 @@ def endChrome(driver):
 
 def main():
     logging.info("Starting Main Method")
-    driver = createDriver()
     config = loadcfg()
+    driver = createDriver()
     try:
         login(
             driver,

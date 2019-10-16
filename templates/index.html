@@ -11,6 +11,9 @@
 </head>
 
 <body>
+    {% for user in userslist %}
+        <a href="{{ user }}">{{ user}}</a>
+    {% endfor %}
     <form action"/getStories" method="post">
         <button name="reloadBtn" type="submit">Reload</button>
     </form>    

@@ -10,6 +10,8 @@ from flask_apscheduler import APScheduler
 
 import InstaClonerService as ICS
 
+os.environ['TZ']= 'America/New_York'
+
 app = Flask(__name__)
 scheduler = APScheduler()
 scheduler.init_app(app)
@@ -18,8 +20,11 @@ scheduler.start()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    userslist=[]
     if request.method == 'GET':
-        return render_template('index.html')
+        for (_root, dirs, _files) in os.walk("static/stories/"):
+            userslist+=dirs
+        return render_template('index.html',userslist=userslist)
     elif request.method == 'POST':
         t = threading.Thread(target=scheduled_task)
         t.start()
@@ -41,8 +46,8 @@ def usergallery(user=None):
         photos=photosloc,
         photolen=len(photosloc))
 
-
-@scheduler.task('cron', id='stories', hour='*')
+#Sets up a cron task in apscheduler with the id of story runs every hour [-300,300] seconds (five minutes).
+@scheduler.task('cron', id='stories', hour='*', jitter=300)
 def scheduled_task():
     reload(ICS)
     driver = ICS.createDriver()

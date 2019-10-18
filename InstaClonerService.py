@@ -119,7 +119,7 @@ def find_element_by_tag_and_text(
         logging.error(str(e))
 
 
-def createDriver(headless=True):
+def createDriver(headless=True, proxy=False, hide_headless=False):
     """ Creates the chrome driver with an option to make the driver headless
     Keyword arguments:
     headless -- true / false if the driver should be headless (default True)
@@ -131,13 +131,21 @@ def createDriver(headless=True):
         chrome_options = webdriver.ChromeOptions()
         if (headless):
             chrome_options.add_argument('headless')
+        if (proxy):
+            chrome_options.add_argument('--proxy-server='+proxy)
+        if (hide_headless):
+            mobile_emulation = {
+                # "deviceMetrics": {"width": 360, "height": 640, "pixelRatio": 3.0},
+                "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36"
+            }
+            chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
         chrome_options.add_argument('--no-sandbox')
         driver = webdriver.Chrome('./chromedriver', options=chrome_options)
         logging.info("Created chrome driver")
         return driver
     except Exception as e:
         logging.error(
-            "Error occured during creating of the chrome driver headless: %s",
+            "Error occured during creation of the chrome driver headless: %s",
             str(headless),
             exc_info=True)
         logging.error(str(e))
@@ -290,7 +298,7 @@ def endChrome(driver):
         driver.close()
         driver.quit()
     except BaseException:
-        logging.error(exc_info=True)
+        logging.error("Failed to endChrome Driver", exc_info=True)
 
 
 def main():

@@ -50,7 +50,7 @@ def usergallery(user=None):
 @scheduler.task('cron', id='stories', hour='*', jitter=300)
 def scheduled_task():
     reload(ICS)
-    driver = ICS.createDriver()
+    driver = ICS.createDriver(hide_headless=True)
     config = ICS.loadcfg()
     try:
         ICS.login(

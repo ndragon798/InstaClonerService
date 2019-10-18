@@ -21,14 +21,14 @@ scheduler.start()
 @app.route('/', methods=['GET', 'POST'])
 def index():
     userslist=[]
+    for (_root, dirs, _files) in os.walk("static/stories/"):
+        userslist+=dirs
     if request.method == 'GET':
-        for (_root, dirs, _files) in os.walk("static/stories/"):
-            userslist+=dirs
         return render_template('index.html',userslist=userslist)
     elif request.method == 'POST':
         t = threading.Thread(target=scheduled_task)
         t.start()
-        return render_template('index.html')
+        return render_template('index.html',userslist)
 
 
 @app.route('/<user>')
@@ -50,7 +50,7 @@ def usergallery(user=None):
 @scheduler.task('cron', id='stories', hour='*', jitter=300)
 def scheduled_task():
     reload(ICS)
-    driver = ICS.createDriver(hide_headless=True)
+    driver = ICS.createDriver()
     config = ICS.loadcfg()
     try:
         ICS.login(

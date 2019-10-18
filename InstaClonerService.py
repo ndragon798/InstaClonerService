@@ -133,12 +133,11 @@ def createDriver(headless=True, proxy=False):
             chrome_options.add_argument('headless')
         if (proxy):
             chrome_options.add_argument('--proxy-server='+proxy)
-        # if (hide_headless):
         mobile_emulation = {
-            # "deviceMetrics": {"width": 360, "height": 640, "pixelRatio": 3.0},
             "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36"
         }
-        chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
+        chrome_options.add_experimental_option(
+            "mobileEmulation", mobile_emulation)
         chrome_options.add_argument('--no-sandbox')
         driver = webdriver.Chrome('./chromedriver', options=chrome_options)
         logging.info("Created chrome driver")

@@ -23,6 +23,7 @@ def index():
     userslist = []
     for (_root, dirs, _files) in os.walk("static/stories/"):
         userslist += dirs
+    userslist.sort()
     if request.method == 'GET':
         return render_template('index.html', userslist=userslist)
     elif request.method == 'POST':

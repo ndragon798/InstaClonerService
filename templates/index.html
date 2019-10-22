@@ -4,22 +4,37 @@
 <head>
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- Compiled and minified JavaScript -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ICS</title>
 </head>
 
 <body>
-    {% for user in userslist %}
-        <a href="{{ user }}">{{ user}}</a>
-    {% endfor %}
+    <div class="container">
+
+        {% for user in userslist %}
+        <div class="row">
+            <div class="col s1 offset-s4">
+                <a class="waves-effect waves-light btn" href="{{ user }}"><span class="flow-text">{{ user}}</span></a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
     <form action"/getStories" method="post">
-        <button name="reloadBtn" type="submit">Reload</button>
-    </form>    
+        <div class="fixed-action-btn">
+            <button class="btn-floating btn-large waves-effect waves-light red" name="reloadBtn" type="submit">
+                <i class="material-icons">loop</i></button>
+        </div>
+
+    </form>
     <!--JavaScript at end of body for optimized loading-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-
+    <script>
+        //Make sure materialize items are initalized
+        M.AutoInit();
+    </script>
 </body>
 
 </html>

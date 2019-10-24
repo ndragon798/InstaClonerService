@@ -262,6 +262,7 @@ def getStories(driver):
     while(driver.current_url == "https://www.instagram.com/"):
         time.sleep(1)
     print("test")
+    emptyurlcount=0
     while(driver.current_url != "https://www.instagram.com/"):
         time.sleep(1)
         try:
@@ -269,6 +270,16 @@ def getStories(driver):
             # stories[driver.current_url].add(find_element_by_tag_and_text(driver,'img','sync',"decoding").get_attribute('src'))
             url = find_element_by_tag_and_text(
                 driver, 'img', 'sync', "decoding").get_attribute('src')
+            logging.info("URL is %s length",str(len(url)))
+            logging.info("URL is %s",url)
+            if len(url)==0:
+                emptyurlcount+=1
+                logging.error("URL is empty. EmptyURLCount is now: %s",str(emptyurlcount))
+            if emptyurlcount>50:
+                logging.error("Unable to get stories.")
+                for t in download_threads:
+                    t.join()
+                return None
             print(url)
             download_threads.append(threading.Thread(
                 target=downloadStoryFile, args=(url, driver.current_url.split('/')[-2])))

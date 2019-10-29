@@ -2,11 +2,13 @@
 import getopt
 import getpass
 import logging
+from logging.handlers import TimedRotatingFileHandler
 import os
 import pickle
 import shutil
 import sys
 import threading
+import datetime
 import time
 import urllib.request
 from random import randint
@@ -24,13 +26,20 @@ from selenium.webdriver.support.ui import WebDriverWait
 from sqlalchemy import Column, Integer, String, create_engine, LargeBinary, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 
-logging.basicConfig(
-    filename='./InstaClonerService.log',
-    filemode='a',
-    format='%(asctime)s - %(name)s - %(message)s',
-    datefmt='%d-%b-%y %H:%M:%S',
-    level=logging.INFO)
+try:
+    handler = TimedRotatingFileHandler('logs/ICS.log',when='D',backupCount=7,atTime=datetime.time(0,30))
 
+    logging.basicConfig(
+        #filemode='a',
+        format='%(asctime)s - %(name)s - %(message)s',
+        datefmt='%d-%b-%y %H:%M:%S',
+        level=logging.INFO,
+        handlers=[handler])
+except FileNotFoundError as e:
+    print("Unable to find logs")
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+    os.execl(sys.executable,sys.executable, *sys.argv)
 engine = create_engine("sqlite:///ICS.db", echo=True)
 Base = declarative_base()
 

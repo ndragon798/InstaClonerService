@@ -27,10 +27,11 @@ from sqlalchemy import Column, Integer, String, create_engine, LargeBinary, Date
 from sqlalchemy.ext.declarative import declarative_base
 
 try:
-    handler = TimedRotatingFileHandler('logs/ICS.log',when='D',backupCount=7,atTime=datetime.time(0,30))
+    handler = TimedRotatingFileHandler(
+        'logs/ICS.log', when='D', backupCount=7, atTime=datetime.time(0, 30))
 
     logging.basicConfig(
-        #filemode='a',
+        # filemode='a',
         format='%(asctime)s - %(name)s - %(message)s',
         datefmt='%d-%b-%y %H:%M:%S',
         level=logging.INFO,
@@ -39,7 +40,7 @@ except FileNotFoundError as e:
     print("Unable to find logs")
     if not os.path.exists('logs'):
         os.makedirs('logs')
-    os.execl(sys.executable,sys.executable, *sys.argv)
+    os.execl(sys.executable, sys.executable, *sys.argv)
 engine = create_engine("sqlite:///ICS.db", echo=True)
 Base = declarative_base()
 
@@ -271,7 +272,7 @@ def getStories(driver):
     while(driver.current_url == "https://www.instagram.com/"):
         time.sleep(1)
     print("test")
-    emptyurlcount=0
+    emptyurlcount = 0
     while(driver.current_url != "https://www.instagram.com/"):
         time.sleep(1)
         try:
@@ -279,12 +280,13 @@ def getStories(driver):
             # stories[driver.current_url].add(find_element_by_tag_and_text(driver,'img','sync',"decoding").get_attribute('src'))
             url = find_element_by_tag_and_text(
                 driver, 'img', 'sync', "decoding").get_attribute('src')
-            logging.info("URL is %s length",str(len(url)))
-            logging.info("URL is %s",url)
-            if len(url)==0:
-                emptyurlcount+=1
-                logging.error("URL is empty. EmptyURLCount is now: %s",str(emptyurlcount))
-            if emptyurlcount>50:
+            logging.info("URL is %s length", str(len(url)))
+            logging.info("URL is %s", url)
+            if len(url) == 0:
+                emptyurlcount += 1
+                logging.error(
+                    "URL is empty. EmptyURLCount is now: %s", str(emptyurlcount))
+            if emptyurlcount > 50:
                 logging.error("Unable to get stories.")
                 for t in download_threads:
                     t.join()

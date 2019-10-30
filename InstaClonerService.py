@@ -28,10 +28,9 @@ from sqlalchemy.ext.declarative import declarative_base
 
 try:
     handler = TimedRotatingFileHandler(
-        'logs/ICS.log', when='D', backupCount=7, atTime=datetime.time(0, 30))
+        'logs/ICS.log', when='D', interval=1, backupCount=7, atTime=datetime.time(0, 30))
 
     logging.basicConfig(
-        # filemode='a',
         format='%(asctime)s - %(name)s - %(message)s',
         datefmt='%d-%b-%y %H:%M:%S',
         level=logging.INFO,
@@ -41,12 +40,13 @@ except FileNotFoundError as e:
     if not os.path.exists('logs'):
         os.makedirs('logs')
     os.execl(sys.executable, sys.executable, *sys.argv)
+
 engine = create_engine("sqlite:///ICS.db", echo=True)
 Base = declarative_base()
 
 
 class User(Base):
-    __tablename__ = 'stories'
+    __tablename__ = 'user'
     id = Column(String, primary_key=True)
     last_seen = Column(DateTime)
 

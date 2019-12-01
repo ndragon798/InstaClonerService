@@ -113,7 +113,6 @@ def find_element_by_tag_and_text(
         tags = driver.find_elements_by_tag_name(tag)
         elements = []
         for i in tags:
-            logging.info("Tag %s",i.get_attribute('innerHTML'))
             if text in i.get_attribute(attribute):
                 if multiple:
                     elements.append(i)

@@ -127,6 +127,7 @@ def find_element_by_tag_and_text(
             attribute,
             exc_info=True)
         logging.error(str(e))
+        return ""
 
 
 def createDriver(headless=True, proxy=False):
@@ -271,7 +272,6 @@ def getStories(driver):
             sys.exit(1)
     while(driver.current_url == "https://www.instagram.com/"):
         time.sleep(1)
-    print("test")
     emptyurlcount = 0
     while(driver.current_url != "https://www.instagram.com/"):
         time.sleep(1)
@@ -279,8 +279,13 @@ def getStories(driver):
             # stories[driver.current_url].update(find_element_by_tag_and_text(driver,'source','video/mp4','type').get_attribute('src'))
             # stories[driver.current_url].add(find_element_by_tag_and_text(driver,'img','sync',"decoding").get_attribute('src'))
             url = find_element_by_tag_and_text(
-                driver, 'img', 'sync', "decoding").get_attribute('src')
-            logging.info("URL is %s length", str(len(url)))
+                driver, 'img', 'sync', "decoding")
+            if isinstance(url,(list)):
+                print("Failed to get url")
+                logging.error("Failed to get url")
+                return None
+            url=url.get_attribute('src')
+            logging.info("URL is %i length", len(str(url)))
             logging.info("URL is %s", url)
             if len(url) == 0:
                 emptyurlcount += 1
@@ -301,8 +306,10 @@ def getStories(driver):
         except AttributeError as e:
             # stories[driver.current_url].update(find_element_by_tag_and_text(driver,'video','auto','preload'))
             print(e)
+            logging.error(e)
         except Exception as e:
             print(e)
+            logging.error(e)
     for t in download_threads:
         t.join()
     logging.info("Got %d stories", amt_downloaded)

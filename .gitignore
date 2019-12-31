@@ -111,3 +111,6 @@ chromedriver_linux64*
 stories/
 *.png
 settings.yml
+
+!/photoswipe/*
+!/photoswipe/default-skin/*

@@ -5,7 +5,7 @@ import time
 import threading
 from importlib import reload
 
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, url_for, request, send_from_directory
 from flask_apscheduler import APScheduler
 
 import InstaClonerService as ICS
@@ -16,6 +16,11 @@ app = Flask(__name__)
 scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
+
+
+@app.route('/photoswipe/<path:path>')
+def send_photoswipe(path):
+    return send_from_directory('photoswipe', path)
 
 
 @app.route('/', methods=['GET', 'POST'])

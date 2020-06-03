@@ -41,16 +41,6 @@ except FileNotFoundError as e:
         os.makedirs('logs')
     os.execl(sys.executable, sys.executable, *sys.argv)
 
-engine = create_engine("sqlite:///ICS.db", echo=True)
-Base = declarative_base()
-
-
-class User(Base):
-    __tablename__ = 'user'
-    id = Column(String, primary_key=True)
-    last_seen = Column(DateTime)
-
-
 def save_cookie(driver, path="cookies.pkl"):
     try:
         pickle.dump(driver.get_cookies(), open(path, "wb"))
@@ -298,7 +288,7 @@ def getStories(driver):
                 return None
             print(url)
             download_threads.append(threading.Thread(
-                target=downloadStoryFile, args=(url, driver.current_url.split('/')[-2])))
+                target=downloadStoryFile, args=(url, driver.current_url.split('/')[-3])))
             download_threads[-1].start()
             amt_downloaded += 1
             find_element_by_tag_and_text(
@@ -316,8 +306,14 @@ def getStories(driver):
 
 
 def loadcfg(settings_file='./settings.yml'):
-    logging.info("Attempting to load cfg from %s", settings_file)
-    return yaml.safe_load(open(settings_file))
+    try:
+        logging.info("Attempting to load cfg from %s", settings_file)
+        return yaml.safe_load(open(settings_file))
+    except FileNotFoundError as e:
+        logging.error(e)
+        settings=[{'username':'testusername'},{'password':'testpassword'},{'totp_key':'testtotp_key'}]
+        with open('settings.yml','w') as f:
+            data=yaml.dump(settings,f)
 
 
 def endChrome(driver):
@@ -326,7 +322,7 @@ def endChrome(driver):
         driver.close()
         driver.quit()
     except BaseException:
-        logging.error("Failed to endChrome Driver", exc_info=True)
+        logging.error("Failed to end Chrome Driver", exc_info=True)
 
 
 def main():

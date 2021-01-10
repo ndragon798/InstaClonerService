@@ -1,0 +1,81 @@
+version: '3'
+
+services:
+
+# https://hub.docker.com/_/mariadb
+    ics-db:
+        image: mariadb:latest
+        restart: always
+        #Listed under the Environment variables section
+        environment:
+            MYSQL_DATABASE: ics
+            MYSQL_USER: ics
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+            MYSQL_RANDOM_ROOT_PASSWORD: "true"
+        volumes:
+            - ${MYSQL_DATA}/:/var/lib/mysql
+
+
+# https://hub.docker.com/_/rabbitmq/
+    ics-rabbit:
+        image: rabbitmq:3-management
+        restart: always
+        #Setting default user and password
+        #docker run -d --hostname my-rabbit --name some-rabbit -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:3-management
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+        ports:
+            - "15672:15672"
+# Django for the actual cloning/scraping service
+    ics-django:
+        build: ./ICS/.
+        restart: always
+        command: python manage.py runserver 0.0.0.0:12345
+        volumes:
+            - ./ICS/code:/code
+        ports:
+            - "12345:12345"
+        depends_on:
+            - ics-rabbit
+            - ics-db
+
+# Workers for django that do the scraping
+    ics-celery-worker:
+        build: ./ICS/.
+        restart: always
+        command: celery -A ICS worker
+        volumes:
+            - ./ICS/code:/code
+        depends_on:
+            - ics-rabbit
+
+# Workers for django that do the scraping
+    ics-celery-worker2:
+        build: ./ICS/.
+        restart: always
+        command: celery -A ICS worker 
+        volumes:
+            - ./ICS/code:/code
+        depends_on:
+            - ics-rabbit
+
+# Celery scheduler so that tasks kick off at the right time
+    ics-celery-scheduler:
+        build: ./ICS/.
+        restart: always
+        command: celery -A ICS beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
+        volumes:
+            - ./ICS/code:/code
+        depends_on:
+            - ics-rabbit
+
+# Selenium grid firefox
+    ics-selenium-firefox:
+        image: selenium/standalone-firefox:4.0.0-alpha-7-prerelease-20201009
+        restart: always
+        volumes:
+            - /dev/shm:/dev/shm
+        ports:
+            - 4444:4444
+            - 5900:5900 #Debug vnc port - password secret

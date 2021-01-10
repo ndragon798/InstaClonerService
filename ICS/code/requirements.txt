@@ -1,0 +1,24 @@
+amqp==5.0.1
+asgiref==3.2.10
+billiard==3.6.3.0
+celery==5.0.0
+click==7.1.2
+click-didyoumean==0.0.3
+click-repl==0.1.6
+Django==3.1.2
+django-celery-beat @ https://github.com/celery/django-celery-beat/zipball/master
+django-timezone-field==4.0
+kombu==5.0.2
+mysqlclient==2.0.1
+onetimepass==1.0.1
+prompt-toolkit==3.0.7
+python-crontab==2.5.1
+python-dateutil==2.8.1
+pytz==2020.1
+selenium==3.141.0
+six==1.15.0
+sqlparse==0.4.1
+urllib3==1.25.11
+vine==5.0.0
+wcwidth==0.2.5
+

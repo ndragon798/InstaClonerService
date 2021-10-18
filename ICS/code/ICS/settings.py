@@ -19,10 +19,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '-$_-4qeon2*=1jo$7wd)c$pkb#&l0t$$atn8k=xef8u_^%+exp'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG',False)
 
 ALLOWED_HOSTS = ['*']
 
@@ -76,11 +76,18 @@ WSGI_APPLICATION = 'ICS.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'defaultdb',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ics',
+        'USER': 'ics',
+        'PASSWORD': os.getenv('MYSQL_PASSWORD'),
+        'HOST':'ics-db',
+        'PORT': '3306',
+        'CONN_MAX_AGE':0
     }
 }
 
+#Celery
+CELERY_BROKER_URL = 'amqp://ics:'+os.getenv('RABBITMQ_DEFAULT_PASS')+'@ics-rabbit'
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -147,7 +154,7 @@ CELERY_TIMEZONE = "EST"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
-try:
-    from local_settings import *
-except ImportError:
-    pass
+# try:
+#     from local_settings import *
+# except ImportError:
+#     pass

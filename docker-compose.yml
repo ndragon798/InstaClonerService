@@ -39,6 +39,11 @@ services:
         depends_on:
             - ics-rabbit
             - ics-db
+        environment:
+            DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+            DJANGO_DEBUG: ${DJANGO_DEBUG}
+            RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
 # Workers for django that do the scraping
     ics-celery-worker:
@@ -49,16 +54,11 @@ services:
             - ./ICS/code:/code
         depends_on:
             - ics-rabbit
-
-# Workers for django that do the scraping
-    ics-celery-worker2:
-        build: ./ICS/.
-        restart: always
-        command: celery -A ICS worker 
-        volumes:
-            - ./ICS/code:/code
-        depends_on:
-            - ics-rabbit
+        environment:
+            DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+            DJANGO_DEBUG: ${DJANGO_DEBUG}
+            RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
 # Celery scheduler so that tasks kick off at the right time
     ics-celery-scheduler:
@@ -69,13 +69,26 @@ services:
             - ./ICS/code:/code
         depends_on:
             - ics-rabbit
+        environment:
+            DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+            DJANGO_DEBUG: ${DJANGO_DEBUG}
+            RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
 # Selenium grid firefox
     ics-selenium-firefox:
-        image: selenium/standalone-firefox:4.0.0-alpha-7-prerelease-20201009
+        # image: selenium/standalone-firefox:4.0.0-alpha-7-prerelease-20201009
+        image: selenium/standalone-firefox
         restart: always
         volumes:
             - /dev/shm:/dev/shm
         ports:
             - 4444:4444
             - 5900:5900 #Debug vnc port - password secret
+
+
+    db-admin:
+        image: adminer
+        restart: always
+        ports:
+        - 12346:8080

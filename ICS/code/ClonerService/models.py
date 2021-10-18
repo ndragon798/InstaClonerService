@@ -1,10 +1,10 @@
 from django.db import models
-
+from picklefield.fields import PickledObjectField
 class loginInfo(models.Model):
     username = models.TextField()
     password = models.TextField()
     totp_key = models.TextField()
-    cookie = models.TextField()
+    cookie = PickledObjectField()
 
 # Create your models here.
 class User(models.Model):

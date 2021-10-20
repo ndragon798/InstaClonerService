@@ -1,6 +1,6 @@
 Set your own passwords in the .env file
 
-Start the services using docker-compose -p ics up -d --build --scale ics-celery-worker=3
+Start the services using docker-compose -p ics --compatibility up -d --build --scale ics-celery-worker=3
 
 Stop the services using docker-compose -p ics down
 

@@ -1,94 +1,118 @@
-version: '3'
+version: "3"
 
 services:
+  # https://hub.docker.com/_/mariadb
+  ics-db:
+    image: mariadb:latest
+    restart: always
+    #Listed under the Environment variables section
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: "true"
+    volumes:
+      - ${MYSQL_DATA}/:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 45s
+      interval: 10s
+      retries: 10
 
-# https://hub.docker.com/_/mariadb
-    ics-db:
-        image: mariadb:latest
-        restart: always
-        #Listed under the Environment variables section
-        environment:
-            MYSQL_DATABASE: ics
-            MYSQL_USER: ics
-            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-            MYSQL_RANDOM_ROOT_PASSWORD: "true"
-        volumes:
-            - ${MYSQL_DATA}/:/var/lib/mysql
+  # https://hub.docker.com/_/rabbitmq/
+  ics-rabbit:
+    image: rabbitmq:3.9.8-management
+    restart: always
+    #Setting default user and password
+    #docker run -d --hostname my-rabbit --name some-rabbit -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+    ports:
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+  # Django for the actual cloning/scraping service
+  ics-django:
+    build: ./ICS/.
+    restart: always
+    command: python manage.py runserver 0.0.0.0:12345
+    volumes:
+      - ./ICS/code:/code
+    ports:
+      - "12345:12345"
+    depends_on:
+      - ics-rabbit
+      - ics-db
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: ${DJANGO_DEBUG}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    healthcheck: #HEALTHCHECK --interval=30s --timeout=30s --start-period=25s --retries=3 CMD curl -f http://localhost:12345 || exit 1
+      test: ["CMD", "curl", "http://localhost:12345"]
 
+  # Workers for django that do the scraping
+  ics-celery-worker:
+    build: ./ICS/.
+    restart: always
+    command: celery -A ICS worker -E
+    volumes:
+      - ./ICS/code:/code
+    depends_on:
+      - ics-rabbit
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: ${DJANGO_DEBUG}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    healthcheck:
+        test: ["CMD", "celery", "inspect","ping","-b","amqp://ics-rabbit5672","-d","celery@$HOSTNAME"]
 
-# https://hub.docker.com/_/rabbitmq/
-    ics-rabbit:
-        image: rabbitmq:3-management
-        restart: always
-        #Setting default user and password
-        #docker run -d --hostname my-rabbit --name some-rabbit -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:3-management
-        environment:
-            RABBITMQ_DEFAULT_USER: ${RABBIT_USER}
-            RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
-        ports:
-            - "15672:15672"
-# Django for the actual cloning/scraping service
-    ics-django:
-        build: ./ICS/.
-        restart: always
-        command: python manage.py runserver 0.0.0.0:12345
-        volumes:
-            - ./ICS/code:/code
-        ports:
-            - "12345:12345"
-        depends_on:
-            - ics-rabbit
-            - ics-db
-        environment:
-            DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-            DJANGO_DEBUG: ${DJANGO_DEBUG}
-            RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
-            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+  # Celery scheduler so that tasks kick off at the right time
+  ics-celery-scheduler:
+    build: ./ICS/.
+    restart: always
+    command: celery -A ICS beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ./ICS/code:/code
+    depends_on:
+      - ics-rabbit
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: ${DJANGO_DEBUG}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
-# Workers for django that do the scraping
-    ics-celery-worker:
-        build: ./ICS/.
-        restart: always
-        command: celery -A ICS worker
-        volumes:
-            - ./ICS/code:/code
-        depends_on:
-            - ics-rabbit
-        environment:
-            DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-            DJANGO_DEBUG: ${DJANGO_DEBUG}
-            RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
-            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+  # Selenium grid firefox
+  ics-selenium-firefox:
+    # image: selenium/standalone-firefox:4.0.0-alpha-7-prerelease-20201009
+    image: selenium/standalone-firefox
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:4444"]
+    volumes:
+      - /dev/shm:/dev/shm
+    ports:
+      - 4444:4444
+      - 5900:5900 #Debug vnc port - password secret
 
-# Celery scheduler so that tasks kick off at the right time
-    ics-celery-scheduler:
-        build: ./ICS/.
-        restart: always
-        command: celery -A ICS beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
-        volumes:
-            - ./ICS/code:/code
-        depends_on:
-            - ics-rabbit
-        environment:
-            DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-            DJANGO_DEBUG: ${DJANGO_DEBUG}
-            RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
-            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-
-# Selenium grid firefox
-    ics-selenium-firefox:
-        # image: selenium/standalone-firefox:4.0.0-alpha-7-prerelease-20201009
-        image: selenium/standalone-firefox
-        restart: always
-        volumes:
-            - /dev/shm:/dev/shm
-        ports:
-            - 4444:4444
-            - 5900:5900 #Debug vnc port - password secret
-
-
-    db-admin:
-        image: adminer
-        restart: always
-        ports:
-        - 12346:8080
+  db-admin:
+    image: adminer
+    restart: always
+    depends_on:
+      - ics-db
+    ports:
+      - 12346:8080
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:8080"]

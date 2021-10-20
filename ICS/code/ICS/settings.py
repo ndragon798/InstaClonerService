@@ -77,8 +77,8 @@ WSGI_APPLICATION = 'ICS.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ics',
-        'USER': 'ics',
+        'NAME': os.getenv("MYSQL_DATABASE"),
+        'USER': os.getenv("MYSQL_USER"),
         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
         'HOST':'ics-db',
         'PORT': '3306',

@@ -71,8 +71,8 @@ services:
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     healthcheck:
-        test: ["CMD", "celery", "inspect","ping","-b","amqp://ics-rabbit5672","-d","celery@$HOSTNAME"]
-
+        # test: ["CMD", "celery","-A","ICS", "inspect","ping","-d","celery@\$HOSTNAME","|echo","$HOSTNAME"]
+          test: celery -A ICS inspect ping -d celery@$$HOSTNAME 
   # Celery scheduler so that tasks kick off at the right time
   ics-celery-scheduler:
     build: ./ICS/.

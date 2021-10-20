@@ -1,15 +1,16 @@
-amqp==5.0.1
+amqp==5.0.6
 asgiref==3.2.10
-billiard==3.6.3.0
-celery==5.0.0
+billiard==3.6.4.0
+celery==5.1.2
 click==7.1.2
 click-didyoumean==0.0.3
+click-plugins==1.1.1
 click-repl==0.1.6
 Django==3.1.2
 django-celery-beat @ https://github.com/celery/django-celery-beat/zipball/master
 django-picklefield==3.0.1
-django-timezone-field==4.0
-kombu==5.0.2
+django-timezone-field==4.2.1
+kombu==5.1.0
 mysqlclient==2.0.1
 onetimepass==1.0.1
 prompt-toolkit==3.0.7
